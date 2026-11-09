@@ -1,0 +1,32 @@
+# Daily health ping for public endpoints used by the free-tools stack.
+# No auth, no secrets — plain public HTTP status checks only.
+# Runs daily 08:00 UTC (16:00 Asia/Singapore) and manually.
+name: health-check
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    name: public endpoint health
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Ping public endpoints
+        run: |
+          set -e
+          for url in \
+            https://github.com \
+            https://www.google.com \
+            https://huggingface.co \
+            https://pypi.org ; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$url")
+            echo "$url -> HTTP $code"
+            test "$code" = "200"
+          done
+          echo "All public endpoints OK ✅"

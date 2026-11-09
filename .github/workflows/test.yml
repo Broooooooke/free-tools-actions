@@ -1,0 +1,43 @@
+# Smoke-test workflow — runs on push, on PRs, daily, and manually.
+# Public repo => standard runners are free and unlimited (GitHub Free).
+# No secrets, no paid runners, no card.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily at 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Say hello
+        run: |
+          echo "Hello from free-tools-actions 👋"
+          echo "Runner: $RUNNER_OS | Repo: $GITHUB_REPOSITORY | Ref: $GITHUB_REF"
+
+      - name: Trivial check (must pass)
+        run: |
+          test -f README.md
+          echo "README.md exists — check passed ✅"
+
+      - name: Environment sanity
+        run: |
+          uname -a
+          python3 --version
+          node --version
+          echo "date (UTC): $(date -u '+%Y-%m-%d %H:%M:%S')"
